@@ -28,6 +28,7 @@ export interface BackendPlayer {
 export interface BackendGameState {
   game_id: string
   status: 'WAITING_PLAYERS' | 'PLAYING' | 'SEASON_ENDED' | 'FINISHED'
+  available_actions: string[]
   players: Record<string, BackendPlayer>
   player_order: string[]
   current_turn_index: number

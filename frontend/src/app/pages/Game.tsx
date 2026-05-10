@@ -36,9 +36,11 @@ export default function Game() {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [myHandOpen, setMyHandOpen] = useState(false)
+  const [availableActions, setAvailableActions] = useState<string[]>([])
 
   const statusRef = useRef(status)
   statusRef.current = status
+  const monkeysFoundRef = useRef(0)
 
   useEffect(() => {
     if (!gid) { navigate('/'); return }
@@ -52,9 +54,21 @@ export default function Game() {
         setMarket(adapted.market)
         setCurrentPlayerId(adapted.currentPlayerId)
         setSeason(adapted.season)
-        setMonkeysFound(adapted.monkeysFound)
         setStatus(adapted.status)
+        setAvailableActions(adapted.availableActions)
         setLoading(false)
+
+        // RNF05 – notifica todos os jogadores quando um macaco é revelado via poll
+        if (adapted.monkeysFound > monkeysFoundRef.current) {
+          const count = adapted.monkeysFound
+          if (count >= 3) {
+            toast.error(`🐒 3º macaco revelado! A temporada acabou.`)
+          } else {
+            toast.error(`🐒 Macaco revelado! (${count}/3)`)
+          }
+        }
+        monkeysFoundRef.current = adapted.monkeysFound
+        setMonkeysFound(adapted.monkeysFound)
 
         if (adapted.status === 'SEASON_ENDED' && statusRef.current !== 'SEASON_ENDED') {
           navigate('/season-end', { state: { gameId: gid } })
@@ -96,8 +110,12 @@ export default function Game() {
     )
   }
 
+  const canDrawMarket = isMyTurn && availableActions.includes('draw_market')
+  const canDrawDeck = isMyTurn && availableActions.includes('draw_deck')
+  const canPlayExpedition = isMyTurn && availableActions.includes('play_expedition')
+
   const buyFromMarket = async (marketIndex: number) => {
-    if (!isMyTurn || !myPlayerId || !gid) return
+    if (!canDrawMarket || !myPlayerId || !gid) return
     if ((myPlayer?.cards.length ?? 0) >= MAX_HAND_SIZE) { toast.error('Limite de cartas atingido! (máx: 10)'); return }
     setActionLoading(true)
     try {
@@ -115,7 +133,7 @@ export default function Game() {
   }
 
   const buyFromDeck = async () => {
-    if (!isMyTurn || !myPlayerId || !gid) return
+    if (!canDrawDeck || !myPlayerId || !gid) return
     if ((myPlayer?.cards.length ?? 0) >= MAX_HAND_SIZE) { toast.error('Limite de cartas atingido! (máx: 10)'); return }
     setActionLoading(true)
     try {
@@ -249,7 +267,7 @@ export default function Game() {
               </h2>
               <Button
                 onClick={buyFromDeck}
-                disabled={!isMyTurn || actionLoading}
+                disabled={!canDrawDeck || actionLoading}
                 variant="outline"
                 className="bg-purple-500/20 border-purple-500 hover:bg-purple-500/30 disabled:opacity-40"
               >
@@ -261,8 +279,8 @@ export default function Game() {
               {market.map((card, idx) => (
                 <div
                   key={card.id}
-                  onClick={isMyTurn && !actionLoading ? () => buyFromMarket(idx) : undefined}
-                  className={isMyTurn && !actionLoading ? 'cursor-pointer' : 'cursor-default'}
+                  onClick={canDrawMarket && !actionLoading ? () => buyFromMarket(idx) : undefined}
+                  className={canDrawMarket && !actionLoading ? 'cursor-pointer' : 'cursor-default'}
                 >
                   <GameCard card={card} />
                 </div>
@@ -271,7 +289,7 @@ export default function Game() {
           </div>
 
           {/* Hand area */}
-          {isMyTurn ? (
+          {canPlayExpedition || isMyTurn ? (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white">
@@ -282,7 +300,7 @@ export default function Game() {
                 </h2>
                 <Button
                   onClick={startExpedition}
-                  disabled={selectedIndices.length < 2}
+                  disabled={selectedIndices.length < 2 || !canPlayExpedition}
                   className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:opacity-50"
                 >
                   <Send className="w-4 h-4 mr-2" />

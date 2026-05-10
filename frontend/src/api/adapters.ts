@@ -76,5 +76,6 @@ export function adaptGameState(
     season: state.season,
     monkeysFound: state.monkeys_found,
     status: state.status,
+    availableActions: state.available_actions ?? [],
   }
 }
