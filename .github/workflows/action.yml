@@ -28,9 +28,13 @@ jobs:
         
       - name: Lint and Type Check
         run: |
-          npm run lint
+          npx eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0
           npx tsc --noEmit
 
+      - name: Debug Dependencies
+        run: |
+          ls -la node_modules/.bin/eslint
+          pwd
   # Testes do Core Engine (Backend)
   backend-test:
     runs-on: ubuntu-latest
