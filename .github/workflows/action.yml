@@ -2,9 +2,9 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, development ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, development ]
 
 jobs:
   # Validação de Qualidade do Frontend (Lint e Tipagem)
