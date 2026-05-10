@@ -11,15 +11,3 @@ services:
       - ./backend/app:/app/app
     # Garante que o FastAPI aceite conexões externas ao container
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 
-
-  frontend:
-    build: 
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000" # Mapeado para 3000 para coincidir com o Next.js
-    environment:
-      - HOSTNAME=0.0.0.0 # Necessário para o Next.js 14+ no Docker
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-    depends_on:
-      - backend
