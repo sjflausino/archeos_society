@@ -1,8 +1,10 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes_game import router as game_router
 from app.api.routes_turn import router as turn_router
-
 from app.db.database import engine, Base
+
+# Inicializa as tabelas do banco de dados SQLite
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -11,7 +13,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Registrando os módulos na aplicação principal
+# --- CONFIGURAÇÃO DE CORS ---
+# Essencial para permitir a comunicação entre domínios no Render
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Permite acesso de qualquer origem (ideal para o MVP)
+    allow_credentials=True,
+    allow_methods=["*"], # Libera OPTIONS, POST, GET, etc.
+    allow_headers=["*"],
+)
+
+# Registro das rotas
 app.include_router(game_router)
 app.include_router(turn_router)
 
