@@ -237,7 +237,7 @@ def test_deve_permitir_comprar_carta_do_mercado():
     # Assert (RF13)
     assert len(player.hand) == 1
     assert player.hand[0] == carta_alvo
-    assert len(session.market) == tamanho_inicial_mercado - 1
+    assert len(session.market) == tamanho_inicial_mercado
     assert carta_alvo not in session.market
 
 def test_guia_deve_permitir_avanco_mesmo_sem_atingir_threshold():

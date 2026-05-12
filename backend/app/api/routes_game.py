@@ -118,13 +118,24 @@ async def get_game_state(game_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Partida não encontrada")
     
     state_dict = session.model_dump()
-    
-    # Injeta max_expedition para o script test_flow.sh conseguir ler
+
     for pid, player in session.players.items():
-        # Calcula o maior tamanho de expedição jogada na mesa
         max_val = max([len(e.cards) for e in player.expeditions_played], default=0)
         state_dict["players"][pid]["max_expedition"] = max_val
-        
+
+    # RF11 – ações disponíveis para o jogador do turno atual
+    current_player = session.players.get(session.current_turn_player_id)
+    available_actions = []
+    if current_player and session.status == "PLAYING":
+        if len(current_player.hand) < 10:
+            if session.deck:
+                available_actions.append("draw_deck")
+            if session.market:
+                available_actions.append("draw_market")
+        if len(current_player.hand) >= 1:
+            available_actions.append("play_expedition")
+    state_dict["available_actions"] = available_actions
+
     return state_dict
 
 @router.get("/{game_id}/summary")
